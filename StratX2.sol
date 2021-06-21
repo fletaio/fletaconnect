@@ -1,12 +1,12 @@
 /**
- *Submitted for verification at BscScan.com on 2021-01-21
+ *Submitted for verification at BscScan.com on 2021-04-05
 */
 
 // SPDX-License-Identifier: MIT
 
-pragma solidity ^0.6.12;
+pragma solidity 0.6.12;
 
-// import "https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/token/ERC20/ERC20.sol";
+// import "https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/token/ERC20/IERC20.sol";
 abstract contract Context {
     function _msgSender() internal view virtual returns (address payable) {
         return msg.sender;
@@ -1339,6 +1339,251 @@ abstract contract Ownable is Context {
     }
 }
 
+interface IPancakeswapFarm {
+    function poolLength() external view returns (uint256);
+
+    function userInfo() external view returns (uint256);
+
+    // Return reward multiplier over the given _from to _to block.
+    function getMultiplier(uint256 _from, uint256 _to)
+        external
+        view
+        returns (uint256);
+
+    // View function to see pending CAKEs on frontend.
+    function pendingCake(uint256 _pid, address _user)
+        external
+        view
+        returns (uint256);
+
+    // Deposit LP tokens to MasterChef for CAKE allocation.
+    function deposit(uint256 _pid, uint256 _amount) external;
+
+    // Withdraw LP tokens from MasterChef.
+    function withdraw(uint256 _pid, uint256 _amount) external;
+
+    // Stake CAKE tokens to MasterChef
+    function enterStaking(uint256 _amount) external;
+
+    // Withdraw CAKE tokens from STAKING.
+    function leaveStaking(uint256 _amount) external;
+
+    // Withdraw without caring about rewards. EMERGENCY ONLY.
+    function emergencyWithdraw(uint256 _pid) external;
+}
+
+interface IPancakeRouter01 {
+    function factory() external pure returns (address);
+
+    function WETH() external pure returns (address);
+
+    function addLiquidity(
+        address tokenA,
+        address tokenB,
+        uint256 amountADesired,
+        uint256 amountBDesired,
+        uint256 amountAMin,
+        uint256 amountBMin,
+        address to,
+        uint256 deadline
+    )
+        external
+        returns (
+            uint256 amountA,
+            uint256 amountB,
+            uint256 liquidity
+        );
+
+    function addLiquidityETH(
+        address token,
+        uint256 amountTokenDesired,
+        uint256 amountTokenMin,
+        uint256 amountETHMin,
+        address to,
+        uint256 deadline
+    )
+        external
+        payable
+        returns (
+            uint256 amountToken,
+            uint256 amountETH,
+            uint256 liquidity
+        );
+
+    function removeLiquidity(
+        address tokenA,
+        address tokenB,
+        uint256 liquidity,
+        uint256 amountAMin,
+        uint256 amountBMin,
+        address to,
+        uint256 deadline
+    ) external returns (uint256 amountA, uint256 amountB);
+
+    function removeLiquidityETH(
+        address token,
+        uint256 liquidity,
+        uint256 amountTokenMin,
+        uint256 amountETHMin,
+        address to,
+        uint256 deadline
+    ) external returns (uint256 amountToken, uint256 amountETH);
+
+    function removeLiquidityWithPermit(
+        address tokenA,
+        address tokenB,
+        uint256 liquidity,
+        uint256 amountAMin,
+        uint256 amountBMin,
+        address to,
+        uint256 deadline,
+        bool approveMax,
+        uint8 v,
+        bytes32 r,
+        bytes32 s
+    ) external returns (uint256 amountA, uint256 amountB);
+
+    function removeLiquidityETHWithPermit(
+        address token,
+        uint256 liquidity,
+        uint256 amountTokenMin,
+        uint256 amountETHMin,
+        address to,
+        uint256 deadline,
+        bool approveMax,
+        uint8 v,
+        bytes32 r,
+        bytes32 s
+    ) external returns (uint256 amountToken, uint256 amountETH);
+
+    function swapExactTokensForTokens(
+        uint256 amountIn,
+        uint256 amountOutMin,
+        address[] calldata path,
+        address to,
+        uint256 deadline
+    ) external returns (uint256[] memory amounts);
+
+    function swapTokensForExactTokens(
+        uint256 amountOut,
+        uint256 amountInMax,
+        address[] calldata path,
+        address to,
+        uint256 deadline
+    ) external returns (uint256[] memory amounts);
+
+    function swapExactETHForTokens(
+        uint256 amountOutMin,
+        address[] calldata path,
+        address to,
+        uint256 deadline
+    ) external payable returns (uint256[] memory amounts);
+
+    function swapTokensForExactETH(
+        uint256 amountOut,
+        uint256 amountInMax,
+        address[] calldata path,
+        address to,
+        uint256 deadline
+    ) external returns (uint256[] memory amounts);
+
+    function swapExactTokensForETH(
+        uint256 amountIn,
+        uint256 amountOutMin,
+        address[] calldata path,
+        address to,
+        uint256 deadline
+    ) external returns (uint256[] memory amounts);
+
+    function swapETHForExactTokens(
+        uint256 amountOut,
+        address[] calldata path,
+        address to,
+        uint256 deadline
+    ) external payable returns (uint256[] memory amounts);
+
+    function quote(
+        uint256 amountA,
+        uint256 reserveA,
+        uint256 reserveB
+    ) external pure returns (uint256 amountB);
+
+    function getAmountOut(
+        uint256 amountIn,
+        uint256 reserveIn,
+        uint256 reserveOut
+    ) external pure returns (uint256 amountOut);
+
+    function getAmountIn(
+        uint256 amountOut,
+        uint256 reserveIn,
+        uint256 reserveOut
+    ) external pure returns (uint256 amountIn);
+
+    function getAmountsOut(uint256 amountIn, address[] calldata path)
+        external
+        view
+        returns (uint256[] memory amounts);
+
+    function getAmountsIn(uint256 amountOut, address[] calldata path)
+        external
+        view
+        returns (uint256[] memory amounts);
+}
+
+interface IPancakeRouter02 is IPancakeRouter01 {
+    function removeLiquidityETHSupportingFeeOnTransferTokens(
+        address token,
+        uint256 liquidity,
+        uint256 amountTokenMin,
+        uint256 amountETHMin,
+        address to,
+        uint256 deadline
+    ) external returns (uint256 amountETH);
+
+    function removeLiquidityETHWithPermitSupportingFeeOnTransferTokens(
+        address token,
+        uint256 liquidity,
+        uint256 amountTokenMin,
+        uint256 amountETHMin,
+        address to,
+        uint256 deadline,
+        bool approveMax,
+        uint8 v,
+        bytes32 r,
+        bytes32 s
+    ) external returns (uint256 amountETH);
+
+    function swapExactTokensForTokensSupportingFeeOnTransferTokens(
+        uint256 amountIn,
+        uint256 amountOutMin,
+        address[] calldata path,
+        address to,
+        uint256 deadline
+    ) external;
+
+    function swapExactETHForTokensSupportingFeeOnTransferTokens(
+        uint256 amountOutMin,
+        address[] calldata path,
+        address to,
+        uint256 deadline
+    ) external payable;
+
+    function swapExactTokensForETHSupportingFeeOnTransferTokens(
+        uint256 amountIn,
+        uint256 amountOutMin,
+        address[] calldata path,
+        address to,
+        uint256 deadline
+    ) external;
+}
+
+interface IWBNB is IERC20 {
+    function deposit() external payable;
+
+    function withdraw(uint256 wad) external;
+}
+
 // "https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/utils/ReentrancyGuard.sol";
 abstract contract ReentrancyGuard {
     // Booleans are more expensive than uint256 or any type that takes up a full
@@ -1383,355 +1628,570 @@ abstract contract ReentrancyGuard {
     }
 }
 
-// import "./CherryToken.sol";
-abstract contract CherryToken is ERC20 {
-    function mint(address _to, uint256 _amount) public virtual;
+// "https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/utils/Pausable.sol";
+contract Pausable is Context {
+    /**
+     * @dev Emitted when the pause is triggered by `account`.
+     */
+    event Paused(address account);
+
+    /**
+     * @dev Emitted when the pause is lifted by `account`.
+     */
+    event Unpaused(address account);
+
+    bool private _paused;
+
+    /**
+     * @dev Initializes the contract in unpaused state.
+     */
+    constructor() internal {
+        _paused = false;
+    }
+
+    /**
+     * @dev Returns true if the contract is paused, and false otherwise.
+     */
+    function paused() public view returns (bool) {
+        return _paused;
+    }
+
+    /**
+     * @dev Modifier to make a function callable only when the contract is not paused.
+     *
+     * Requirements:
+     *
+     * - The contract must not be paused.
+     */
+    modifier whenNotPaused() {
+        require(!_paused, "Pausable: paused");
+        _;
+    }
+
+    /**
+     * @dev Modifier to make a function callable only when the contract is paused.
+     *
+     * Requirements:
+     *
+     * - The contract must be paused.
+     */
+    modifier whenPaused() {
+        require(_paused, "Pausable: not paused");
+        _;
+    }
+
+    /**
+     * @dev Triggers stopped state.
+     *
+     * Requirements:
+     *
+     * - The contract must not be paused.
+     */
+    function _pause() internal virtual whenNotPaused {
+        _paused = true;
+        emit Paused(_msgSender());
+    }
+
+    /**
+     * @dev Returns to normal state.
+     *
+     * Requirements:
+     *
+     * - The contract must be paused.
+     */
+    function _unpause() internal virtual whenPaused {
+        _paused = false;
+        emit Unpaused(_msgSender());
+    }
 }
 
-// For interacting with our own strategy
-interface IStrategy {
-    // Total want tokens managed by stratfegy
-    function wantLockedTotal() external view returns (uint256);
+abstract contract StratX2 is Ownable, ReentrancyGuard, Pausable {
+    // Maximises yields in pancakeswap
 
-    // Sum of all shares of users to wantLockedTotal
-    function sharesTotal() external view returns (uint256);
+    using SafeMath for uint256;
+    using SafeERC20 for IERC20;
 
-    // Main want token compounding function
-    function earn() external;
+    bool public isCAKEStaking; // only for staking CAKE using pancakeswap's native CAKE staking contract.
+    bool public isSameAssetDeposit;
+    bool public isCherryComp; // this vault is purely for staking. eg. WBNB-CHERRY staking vault.
 
-    // Transfer want tokens FletaFinance -> strategy
+    address public farmContractAddress; // address of farm, eg, PCS, Thugs etc.
+    uint256 public pid; // pid of pool in farmContractAddress
+    address public wantAddress;
+    address public token0Address;
+    address public token1Address;
+    address public earnedAddress;
+    address public uniRouterAddress; // uniswap, pancakeswap etc
+
+    address public wbnbAddress;
+    address public cherryFarmAddress;
+    address public CHERRYAddress;
+    address public govAddress; // timelock contract
+    bool public onlyGov = true;
+
+    uint256 public lastEarnBlock = 0;
+    uint256 public wantLockedTotal = 0;
+    uint256 public sharesTotal = 0;
+
+    uint256 public controllerFee = 0; // 70;
+    uint256 public constant controllerFeeMax = 10000; // 100 = 1%
+    uint256 public constant controllerFeeUL = 300;
+
+    uint256 public buyBackRate = 0; // 250;
+    uint256 public constant buyBackRateMax = 10000; // 100 = 1%
+    uint256 public constant buyBackRateUL = 800;
+    address public buyBackAddress = 0x000000000000000000000000000000000000dEaD;
+    address public rewardsAddress;
+
+    uint256 public entranceFeeFactor = 9990; // < 0.1% entrance fee - goes to pool + prevents front-running
+    uint256 public constant entranceFeeFactorMax = 10000;
+    uint256 public constant entranceFeeFactorLL = 9950; // 0.5% is the max entrance fee settable. LL = lowerlimit
+
+    uint256 public withdrawFeeFactor = 10000; // 0.1% withdraw fee - goes to pool
+    uint256 public constant withdrawFeeFactorMax = 10000;
+    uint256 public constant withdrawFeeFactorLL = 9950; // 0.5% is the max entrance fee settable. LL = lowerlimit
+
+    uint256 public slippageFactor = 950; // 5% default slippage tolerance
+    uint256 public constant slippageFactorUL = 995;
+
+    address[] public earnedToCHERRYPath;
+    address[] public earnedToToken0Path;
+    address[] public earnedToToken1Path;
+    address[] public token0ToEarnedPath;
+    address[] public token1ToEarnedPath;
+
+    event SetSettings(
+        uint256 _entranceFeeFactor,
+        uint256 _withdrawFeeFactor,
+        uint256 _controllerFee,
+        uint256 _buyBackRate,
+        uint256 _slippageFactor
+    );
+
+    event SetGov(address _govAddress);
+    event SetOnlyGov(bool _onlyGov);
+    event SetUniRouterAddress(address _uniRouterAddress);
+    event SetBuyBackAddress(address _buyBackAddress);
+    event SetRewardsAddress(address _rewardsAddress);
+
+    modifier onlyAllowGov() {
+        require(msg.sender == govAddress, "!gov");
+        _;
+    }
+
+    // Receives new deposits from user
     function deposit(address _userAddress, uint256 _wantAmt)
-        external
-        returns (uint256);
+        public
+        virtual
+        onlyOwner
+        nonReentrant
+        whenNotPaused
+        returns (uint256)
+    {
+        IERC20(wantAddress).safeTransferFrom(
+            address(msg.sender),
+            address(this),
+            _wantAmt
+        );
 
-    // Transfer want tokens strategy -> FletaFinance
+        uint256 sharesAdded = _wantAmt;
+        if (wantLockedTotal > 0 && sharesTotal > 0) {
+            sharesAdded = _wantAmt
+                .mul(sharesTotal)
+                .mul(entranceFeeFactor)
+                .div(wantLockedTotal)
+                .div(entranceFeeFactorMax);
+        }
+        sharesTotal = sharesTotal.add(sharesAdded);
+
+        if (isCherryComp) {
+            _farm();
+        } else {
+            wantLockedTotal = wantLockedTotal.add(_wantAmt);
+        }
+
+        return sharesAdded;
+    }
+
+    function farm() public virtual nonReentrant {
+        _farm();
+    }
+
+    function _farm() internal virtual {
+        require(isCherryComp, "!isCherryComp");
+        uint256 wantAmt = IERC20(wantAddress).balanceOf(address(this));
+        wantLockedTotal = wantLockedTotal.add(wantAmt);
+        IERC20(wantAddress).safeIncreaseAllowance(farmContractAddress, wantAmt);
+
+        if (isCAKEStaking) {
+            IPancakeswapFarm(farmContractAddress).enterStaking(wantAmt); // Just for CAKE staking, we dont use deposit()
+        } else {
+            IPancakeswapFarm(farmContractAddress).deposit(pid, wantAmt);
+        }
+    }
+
+    function _unfarm(uint256 _wantAmt) internal virtual {
+        if (isCAKEStaking) {
+            IPancakeswapFarm(farmContractAddress).leaveStaking(_wantAmt); // Just for CAKE staking, we dont use withdraw()
+        } else {
+            IPancakeswapFarm(farmContractAddress).withdraw(pid, _wantAmt);
+        }
+    }
+
     function withdraw(address _userAddress, uint256 _wantAmt)
-        external
-        returns (uint256);
+        public
+        virtual
+        onlyOwner
+        nonReentrant
+        returns (uint256)
+    {
+        require(_wantAmt > 0, "_wantAmt <= 0");
+
+        uint256 sharesRemoved = _wantAmt.mul(sharesTotal).div(wantLockedTotal);
+        if (sharesRemoved > sharesTotal) {
+            sharesRemoved = sharesTotal;
+        }
+        sharesTotal = sharesTotal.sub(sharesRemoved);
+
+        if (withdrawFeeFactor < withdrawFeeFactorMax) {
+            _wantAmt = _wantAmt.mul(withdrawFeeFactor).div(
+                withdrawFeeFactorMax
+            );
+        }
+
+        if (isCherryComp) {
+            _unfarm(_wantAmt);
+        }
+
+        uint256 wantAmt = IERC20(wantAddress).balanceOf(address(this));
+        if (_wantAmt > wantAmt) {
+            _wantAmt = wantAmt;
+        }
+
+        if (wantLockedTotal < _wantAmt) {
+            _wantAmt = wantLockedTotal;
+        }
+
+        wantLockedTotal = wantLockedTotal.sub(_wantAmt);
+
+        IERC20(wantAddress).safeTransfer(cherryFarmAddress, _wantAmt);
+
+        return sharesRemoved;
+    }
+
+    // 1. Harvest farm tokens
+    // 2. Converts farm tokens into want tokens
+    // 3. Deposits want tokens
+
+    function earn() public virtual nonReentrant whenNotPaused {
+        require(isCherryComp, "!isCherryComp");
+        if (onlyGov) {
+            require(msg.sender == govAddress, "!gov");
+        }
+
+        // Harvest farm tokens
+        _unfarm(0);
+
+        if (earnedAddress == wbnbAddress) {
+            _wrapBNB();
+        }
+
+        // Converts farm tokens into want tokens
+        uint256 earnedAmt = IERC20(earnedAddress).balanceOf(address(this));
+
+        earnedAmt = distributeFees(earnedAmt);
+        earnedAmt = buyBack(earnedAmt);
+
+        if (isCAKEStaking || isSameAssetDeposit) {
+            lastEarnBlock = block.number;
+            _farm();
+            return;
+        }
+
+        IERC20(earnedAddress).safeApprove(uniRouterAddress, 0);
+        IERC20(earnedAddress).safeIncreaseAllowance(
+            uniRouterAddress,
+            earnedAmt
+        );
+
+        if (earnedAddress != token0Address) {
+            // Swap half earned to token0
+            _safeSwap(
+                uniRouterAddress,
+                earnedAmt.div(2),
+                slippageFactor,
+                earnedToToken0Path,
+                address(this),
+                block.timestamp.add(600)
+            );
+        }
+
+        if (earnedAddress != token1Address) {
+            // Swap half earned to token1
+            _safeSwap(
+                uniRouterAddress,
+                earnedAmt.div(2),
+                slippageFactor,
+                earnedToToken1Path,
+                address(this),
+                block.timestamp.add(600)
+            );
+        }
+
+        // Get want tokens, ie. add liquidity
+        uint256 token0Amt = IERC20(token0Address).balanceOf(address(this));
+        uint256 token1Amt = IERC20(token1Address).balanceOf(address(this));
+        if (token0Amt > 0 && token1Amt > 0) {
+            IERC20(token0Address).safeIncreaseAllowance(
+                uniRouterAddress,
+                token0Amt
+            );
+            IERC20(token1Address).safeIncreaseAllowance(
+                uniRouterAddress,
+                token1Amt
+            );
+            IPancakeRouter02(uniRouterAddress).addLiquidity(
+                token0Address,
+                token1Address,
+                token0Amt,
+                token1Amt,
+                0,
+                0,
+                address(this),
+                block.timestamp.add(600)
+            );
+        }
+
+        lastEarnBlock = block.number;
+
+        _farm();
+    }
+
+    function buyBack(uint256 _earnedAmt) internal virtual returns (uint256) {
+        if (buyBackRate <= 0) {
+            return _earnedAmt;
+        }
+
+        uint256 buyBackAmt = _earnedAmt.mul(buyBackRate).div(buyBackRateMax);
+
+        if (earnedAddress == CHERRYAddress) {
+            IERC20(earnedAddress).safeTransfer(buyBackAddress, buyBackAmt);
+        } else {
+            IERC20(earnedAddress).safeIncreaseAllowance(
+                uniRouterAddress,
+                buyBackAmt
+            );
+
+            _safeSwap(
+                uniRouterAddress,
+                buyBackAmt,
+                slippageFactor,
+                earnedToCHERRYPath,
+                buyBackAddress,
+                block.timestamp.add(600)
+            );
+        }
+
+        return _earnedAmt.sub(buyBackAmt);
+    }
+
+    function distributeFees(uint256 _earnedAmt)
+        internal
+        virtual
+        returns (uint256)
+    {
+        if (_earnedAmt > 0) {
+            // Performance fee
+            if (controllerFee > 0) {
+                uint256 fee =
+                    _earnedAmt.mul(controllerFee).div(controllerFeeMax);
+                IERC20(earnedAddress).safeTransfer(rewardsAddress, fee);
+                _earnedAmt = _earnedAmt.sub(fee);
+            }
+        }
+
+        return _earnedAmt;
+    }
+
+    function convertDustToEarned() public virtual whenNotPaused {
+        require(isCherryComp, "!isCherryComp");
+        require(!isCAKEStaking, "isCAKEStaking");
+
+        // Converts dust tokens into earned tokens, which will be reinvested on the next earn().
+
+        // Converts token0 dust (if any) to earned tokens
+        uint256 token0Amt = IERC20(token0Address).balanceOf(address(this));
+        if (token0Address != earnedAddress && token0Amt > 0) {
+            IERC20(token0Address).safeIncreaseAllowance(
+                uniRouterAddress,
+                token0Amt
+            );
+
+            // Swap all dust tokens to earned tokens
+            _safeSwap(
+                uniRouterAddress,
+                token0Amt,
+                slippageFactor,
+                token0ToEarnedPath,
+                address(this),
+                block.timestamp.add(600)
+            );
+        }
+
+        // Converts token1 dust (if any) to earned tokens
+        uint256 token1Amt = IERC20(token1Address).balanceOf(address(this));
+        if (token1Address != earnedAddress && token1Amt > 0) {
+            IERC20(token1Address).safeIncreaseAllowance(
+                uniRouterAddress,
+                token1Amt
+            );
+
+            // Swap all dust tokens to earned tokens
+            _safeSwap(
+                uniRouterAddress,
+                token1Amt,
+                slippageFactor,
+                token1ToEarnedPath,
+                address(this),
+                block.timestamp.add(600)
+            );
+        }
+    }
+
+    function pause() public virtual onlyAllowGov {
+        _pause();
+    }
+
+    function unpause() public virtual onlyAllowGov {
+        _unpause();
+    }
+
+    function setSettings(
+        uint256 _entranceFeeFactor,
+        uint256 _withdrawFeeFactor,
+        uint256 _controllerFee,
+        uint256 _buyBackRate,
+        uint256 _slippageFactor
+    ) public virtual onlyAllowGov {
+        require(
+            _entranceFeeFactor >= entranceFeeFactorLL,
+            "_entranceFeeFactor too low"
+        );
+        require(
+            _entranceFeeFactor <= entranceFeeFactorMax,
+            "_entranceFeeFactor too high"
+        );
+        entranceFeeFactor = _entranceFeeFactor;
+
+        require(
+            _withdrawFeeFactor >= withdrawFeeFactorLL,
+            "_withdrawFeeFactor too low"
+        );
+        require(
+            _withdrawFeeFactor <= withdrawFeeFactorMax,
+            "_withdrawFeeFactor too high"
+        );
+        withdrawFeeFactor = _withdrawFeeFactor;
+
+        require(_controllerFee <= controllerFeeUL, "_controllerFee too high");
+        controllerFee = _controllerFee;
+
+        require(_buyBackRate <= buyBackRateUL, "_buyBackRate too high");
+        buyBackRate = _buyBackRate;
+
+        require(
+            _slippageFactor <= slippageFactorUL,
+            "_slippageFactor too high"
+        );
+        slippageFactor = _slippageFactor;
+
+        emit SetSettings(
+            _entranceFeeFactor,
+            _withdrawFeeFactor,
+            _controllerFee,
+            _buyBackRate,
+            _slippageFactor
+        );
+    }
+
+    function setGov(address _govAddress) public virtual onlyAllowGov {
+        govAddress = _govAddress;
+        emit SetGov(_govAddress);
+    }
+
+    function setOnlyGov(bool _onlyGov) public virtual onlyAllowGov {
+        onlyGov = _onlyGov;
+        emit SetOnlyGov(_onlyGov);
+    }
+
+    function setUniRouterAddress(address _uniRouterAddress)
+        public
+        virtual
+        onlyAllowGov
+    {
+        uniRouterAddress = _uniRouterAddress;
+        emit SetUniRouterAddress(_uniRouterAddress);
+    }
+
+    function setBuyBackAddress(address _buyBackAddress)
+        public
+        virtual
+        onlyAllowGov
+    {
+        buyBackAddress = _buyBackAddress;
+        emit SetBuyBackAddress(_buyBackAddress);
+    }
+
+    function setRewardsAddress(address _rewardsAddress)
+        public
+        virtual
+        onlyAllowGov
+    {
+        rewardsAddress = _rewardsAddress;
+        emit SetRewardsAddress(_rewardsAddress);
+    }
 
     function inCaseTokensGetStuck(
         address _token,
         uint256 _amount,
         address _to
-    ) external;
-}
-
-contract FletaFinance is Ownable, ReentrancyGuard {
-    using SafeMath for uint256;
-    using SafeERC20 for IERC20;
-
-    // Info of each user.
-    struct UserInfo {
-        uint256 shares; // How many LP tokens the user has provided.
-        uint256 rewardDebt; // Reward debt. See explanation below.
-
-        // We do some fancy math here. Basically, any point in time, the amount of Cherry
-        // entitled to a user but is pending to be distributed is:
-        //
-        //   amount = user.shares / sharesTotal * wantLockedTotal
-        //   pending reward = (amount * pool.accCherryPerShare) - user.rewardDebt
-        //
-        // Whenever a user deposits or withdraws want tokens to a pool. Here's what happens:
-        //   1. The pool's `accCherryPerShare` (and `lastRewardBlock`) gets updated.
-        //   2. User receives the pending reward sent to his/her address.
-        //   3. User's `amount` gets updated.
-        //   4. User's `rewardDebt` gets updated.
+    ) public virtual onlyAllowGov {
+        require(_token != earnedAddress, "!safe");
+        require(_token != wantAddress, "!safe");
+        IERC20(_token).safeTransfer(_to, _amount);
     }
 
-    struct PoolInfo {
-        IERC20 want; // Address of the want token.
-        uint256 allocPoint; // How many allocation points assigned to this pool.  to distribute per block.
-        uint256 lastRewardBlock; // Last block number that Cherry distribution occurs.
-        uint256 accCherryPerShare; // Accumulated Cherry per share, times 1e12. See below.
-        address strat; // Strategy address that will auto compound want tokens
-    }
-
-    address public CherryAddr = CHANGE_TO_TOKEN_ADDRESS;
-
-    address public burnAddress = 0x000000000000000000000000000000000000dEaD;
-
-    uint256 public ownerCherryReward = 100; // 10%
-
-    uint256 public CherryMaxSupply = 0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff;
-    uint256 public CherryPerBlock = 1000000000000000000; // Cherry tokens created per block
-    uint256 public startBlock = CHANGE_START_BLOCK; //https://bscscan.com/block/countdown/CHANGE_START_BLOCK
-
-    PoolInfo[] public poolInfo; // Info of each pool.
-    mapping(uint256 => mapping(address => UserInfo)) public userInfo; // Info of each user that stakes LP tokens.
-    uint256 public totalAllocPoint = 0; // Total allocation points. Must be the sum of all allocation points in all pools.
-
-    event Deposit(address indexed user, uint256 indexed pid, uint256 amount);
-    event Withdraw(address indexed user, uint256 indexed pid, uint256 amount);
-    event EmergencyWithdraw(
-        address indexed user,
-        uint256 indexed pid,
-        uint256 amount
-    );
-
-    function poolLength() external view returns (uint256) {
-        return poolInfo.length;
-    }
-
-    // Add a new lp to the pool. Can only be called by the owner.
-    // XXX DO NOT add the same LP token more than once. Rewards will be messed up if you do. (Only if want tokens are stored here.)
-
-    function add(
-        uint256 _allocPoint,
-        IERC20 _want,
-        bool _withUpdate,
-        address _strat
-    ) public onlyOwner {
-        if (_withUpdate) {
-            massUpdatePools();
+    function _wrapBNB() internal virtual {
+        // BNB -> WBNB
+        uint256 bnbBal = address(this).balance;
+        if (bnbBal > 0) {
+            IWBNB(wbnbAddress).deposit{value: bnbBal}(); // BNB -> WBNB
         }
-        uint256 lastRewardBlock =
-            block.number > startBlock ? block.number : startBlock;
-        totalAllocPoint = totalAllocPoint.add(_allocPoint);
-        poolInfo.push(
-            PoolInfo({
-                want: _want,
-                allocPoint: _allocPoint,
-                lastRewardBlock: lastRewardBlock,
-                accCherryPerShare: 0,
-                strat: _strat
-            })
+    }
+
+    function wrapBNB() public virtual onlyAllowGov {
+        _wrapBNB();
+    }
+
+    function _safeSwap(
+        address _uniRouterAddress,
+        uint256 _amountIn,
+        uint256 _slippageFactor,
+        address[] memory _path,
+        address _to,
+        uint256 _deadline
+    ) internal virtual {
+        uint256[] memory amounts =
+            IPancakeRouter02(_uniRouterAddress).getAmountsOut(_amountIn, _path);
+        uint256 amountOut = amounts[amounts.length.sub(1)];
+
+        IPancakeRouter02(_uniRouterAddress)
+            .swapExactTokensForTokensSupportingFeeOnTransferTokens(
+            _amountIn,
+            amountOut.mul(_slippageFactor).div(1000),
+            _path,
+            _to,
+            _deadline
         );
     }
-
-    function setSupplySettings(
-        uint256 _CherryMaxSupply,
-        uint256 _CherryPerBlock
-    ) public onlyOwner {
-        CherryMaxSupply = _CherryMaxSupply;
-        CherryPerBlock = _CherryPerBlock;
-    }
-
-    // Update the given pool's Cherry allocation point. Can only be called by the owner.
-    function set(
-        uint256 _pid,
-        uint256 _allocPoint,
-        bool _withUpdate
-    ) public onlyOwner {
-        if (_withUpdate) {
-            massUpdatePools();
-        }
-        totalAllocPoint = totalAllocPoint.sub(poolInfo[_pid].allocPoint).add(
-            _allocPoint
-        );
-        poolInfo[_pid].allocPoint = _allocPoint;
-    }
-
-    // Return reward multiplier over the given _from to _to block.
-    function getMultiplier(uint256 _from, uint256 _to)
-        public
-        view
-        returns (uint256)
-    {
-        if (IERC20(CherryAddr).totalSupply() >= CherryMaxSupply) {
-            return 0;
-        }
-        return _to.sub(_from);
-    }
-
-    // View function to see pending Cherry on frontend.
-    function pendingCherry(uint256 _pid, address _user)
-        external
-        view
-        returns (uint256)
-    {
-        PoolInfo storage pool = poolInfo[_pid];
-        UserInfo storage user = userInfo[_pid][_user];
-        uint256 accCherryPerShare = pool.accCherryPerShare;
-        uint256 sharesTotal = IStrategy(pool.strat).sharesTotal();
-        if (block.number > pool.lastRewardBlock && sharesTotal != 0) {
-            uint256 multiplier =
-                getMultiplier(pool.lastRewardBlock, block.number);
-            uint256 CherryReward =
-                multiplier.mul(CherryPerBlock).mul(pool.allocPoint).div(
-                    totalAllocPoint
-                );
-            accCherryPerShare = accCherryPerShare.add(
-                CherryReward.mul(1e12).div(sharesTotal)
-            );
-        }
-        return user.shares.mul(accCherryPerShare).div(1e12).sub(user.rewardDebt);
-    }
-
-    // View function to see staked Want tokens on frontend.
-    function stakedWantTokens(uint256 _pid, address _user)
-        external
-        view
-        returns (uint256)
-    {
-        PoolInfo storage pool = poolInfo[_pid];
-        UserInfo storage user = userInfo[_pid][_user];
-
-        uint256 sharesTotal = IStrategy(pool.strat).sharesTotal();
-        uint256 wantLockedTotal =
-            IStrategy(poolInfo[_pid].strat).wantLockedTotal();
-        if (sharesTotal == 0) {
-            return 0;
-        }
-        return user.shares.mul(wantLockedTotal).div(sharesTotal);
-    }
-
-    // Update reward variables for all pools. Be careful of gas spending!
-    function massUpdatePools() public {
-        uint256 length = poolInfo.length;
-        for (uint256 pid = 0; pid < length; ++pid) {
-            updatePool(pid);
-        }
-    }
-
-    // Update reward variables of the given pool to be up-to-date.
-    function updatePool(uint256 _pid) public {
-        PoolInfo storage pool = poolInfo[_pid];
-        if (block.number <= pool.lastRewardBlock) {
-            return;
-        }
-        uint256 sharesTotal = IStrategy(pool.strat).sharesTotal();
-        if (sharesTotal == 0) {
-            pool.lastRewardBlock = block.number;
-            return;
-        }
-        uint256 multiplier = getMultiplier(pool.lastRewardBlock, block.number);
-        if (multiplier <= 0) {
-            return;
-        }
-        uint256 CherryReward =
-            multiplier.mul(CherryPerBlock).mul(pool.allocPoint).div(
-                totalAllocPoint
-            );
-
-        CherryToken(CherryAddr).mint(
-            owner(),
-            CherryReward.mul(ownerCherryReward).div(1000)
-        );
-        CherryToken(CherryAddr).mint(address(this), CherryReward);
-
-        pool.accCherryPerShare = pool.accCherryPerShare.add(
-            CherryReward.mul(1e12).div(sharesTotal)
-        );
-        pool.lastRewardBlock = block.number;
-    }
-
-    // Want tokens moved from user -> FletaFinance (Cherry allocation) -> Strat (compounding)
-    function deposit(uint256 _pid, uint256 _wantAmt) public nonReentrant {
-        updatePool(_pid);
-        PoolInfo storage pool = poolInfo[_pid];
-        UserInfo storage user = userInfo[_pid][msg.sender];
-
-        if (user.shares > 0) {
-            uint256 pending =
-                user.shares.mul(pool.accCherryPerShare).div(1e12).sub(
-                    user.rewardDebt
-                );
-            if (pending > 0) {
-                safeCherryTransfer(msg.sender, pending);
-            }
-        }
-        if (_wantAmt > 0) {
-            pool.want.safeTransferFrom(
-                address(msg.sender),
-                address(this),
-                _wantAmt
-            );
-
-            pool.want.safeIncreaseAllowance(pool.strat, _wantAmt);
-            uint256 sharesAdded =
-                IStrategy(poolInfo[_pid].strat).deposit(msg.sender, _wantAmt);
-            user.shares = user.shares.add(sharesAdded);
-        }
-        user.rewardDebt = user.shares.mul(pool.accCherryPerShare).div(1e12);
-        emit Deposit(msg.sender, _pid, _wantAmt);
-    }
-
-    // Withdraw LP tokens from MasterPicker.
-    function withdraw(uint256 _pid, uint256 _wantAmt) public nonReentrant {
-        updatePool(_pid);
-
-        PoolInfo storage pool = poolInfo[_pid];
-        UserInfo storage user = userInfo[_pid][msg.sender];
-
-        uint256 wantLockedTotal =
-            IStrategy(poolInfo[_pid].strat).wantLockedTotal();
-        uint256 sharesTotal = IStrategy(poolInfo[_pid].strat).sharesTotal();
-
-        require(user.shares > 0, "user.shares is 0");
-        require(sharesTotal > 0, "sharesTotal is 0");
-
-        // Withdraw pending Cherry
-        uint256 pending =
-            user.shares.mul(pool.accCherryPerShare).div(1e12).sub(
-                user.rewardDebt
-            );
-        if (pending > 0) {
-            safeCherryTransfer(msg.sender, pending);
-        }
-
-        // Withdraw want tokens
-        uint256 amount = user.shares.mul(wantLockedTotal).div(sharesTotal);
-        if (_wantAmt > amount) {
-            _wantAmt = amount;
-        }
-        if (_wantAmt > 0) {
-            uint256 sharesRemoved =
-                IStrategy(poolInfo[_pid].strat).withdraw(msg.sender, _wantAmt);
-
-            if (sharesRemoved > user.shares) {
-                user.shares = 0;
-            } else {
-                user.shares = user.shares.sub(sharesRemoved);
-            }
-
-            uint256 wantBal = IERC20(pool.want).balanceOf(address(this));
-            if (wantBal < _wantAmt) {
-                _wantAmt = wantBal;
-            }
-            pool.want.safeTransfer(address(msg.sender), _wantAmt);
-        }
-        user.rewardDebt = user.shares.mul(pool.accCherryPerShare).div(1e12);
-        emit Withdraw(msg.sender, _pid, _wantAmt);
-    }
-
-    function withdrawAll(uint256 _pid) public nonReentrant {
-        withdraw(_pid, uint256(-1));
-    }
-
-    // Withdraw without caring about rewards. EMERGENCY ONLY.
-    function emergencyWithdraw(uint256 _pid) public nonReentrant {
-        PoolInfo storage pool = poolInfo[_pid];
-        UserInfo storage user = userInfo[_pid][msg.sender];
-
-        uint256 wantLockedTotal =
-            IStrategy(poolInfo[_pid].strat).wantLockedTotal();
-        uint256 sharesTotal = IStrategy(poolInfo[_pid].strat).sharesTotal();
-        uint256 amount = user.shares.mul(wantLockedTotal).div(sharesTotal);
-
-        IStrategy(poolInfo[_pid].strat).withdraw(msg.sender, amount);
-
-        pool.want.safeTransfer(address(msg.sender), amount);
-        emit EmergencyWithdraw(msg.sender, _pid, amount);
-        user.shares = 0;
-        user.rewardDebt = 0;
-    }
-
-    // Safe Cherry transfer function, just in case if rounding error causes pool to not have enough
-    function safeCherryTransfer(address _to, uint256 _CherryAmt) internal {
-        uint256 CherryBal = IERC20(CherryAddr).balanceOf(address(this));
-        if (_CherryAmt > CherryBal) {
-            IERC20(CherryAddr).transfer(_to, CherryBal);
-        } else {
-            IERC20(CherryAddr).transfer(_to, _CherryAmt);
-        }
-    }
-
-    function inCaseTokensGetStuck(address _token, uint256 _amount)
-        public
-        onlyOwner
-    {
-        require(_token != CherryAddr, "!safe");
-        IERC20(_token).safeTransfer(msg.sender, _amount);
-    }
-
 }
