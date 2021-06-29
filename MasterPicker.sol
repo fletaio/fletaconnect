@@ -1399,12 +1399,12 @@ interface IStrategy {
     // Main want token compounding function
     function earn() external;
 
-    // Transfer want tokens FletaFinance -> strategy
+    // Transfer want tokens FletaConnect -> strategy
     function deposit(address _userAddress, uint256 _wantAmt)
         external
         returns (uint256);
 
-    // Transfer want tokens strategy -> FletaFinance
+    // Transfer want tokens strategy -> FletaConnect
     function withdraw(address _userAddress, uint256 _wantAmt)
         external
         returns (uint256);
@@ -1416,7 +1416,7 @@ interface IStrategy {
     ) external;
 }
 
-contract FletaFinance is Ownable, ReentrancyGuard {
+contract FletaConnect is Ownable, ReentrancyGuard {
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
 
