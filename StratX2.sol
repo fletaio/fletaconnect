@@ -1777,6 +1777,9 @@ abstract contract StratX2 is Ownable, ReentrancyGuard, Pausable {
     event SetUniRouterAddress(address _uniRouterAddress);
     event SetBuyBackAddress(address _buyBackAddress);
     event SetRewardsAddress(address _rewardsAddress);
+    event SetDepositFeeFundAddress(address _depositFeeFundAddress);
+    event SetDelegateFundAddress(address _delegateFundAddress);
+
 
     modifier onlyAllowGov() {
         require(msg.sender == govAddress, "!gov");
@@ -2180,6 +2183,24 @@ abstract contract StratX2 is Ownable, ReentrancyGuard, Pausable {
         emit SetRewardsAddress(_rewardsAddress);
     }
 
+    function setDepositFeeFundAddress(address _depositFeeFundAddress)
+        public
+        virtual
+        onlyAllowGov
+    {
+        depositFeeFundAddress = _depositFeeFundAddress;
+        emit SetDepositFeeFundAddress(_depositFeeFundAddress);
+    }
+    
+    function setDelegateFundAddress(address _delegateFundAddress)
+        public
+        virtual
+        onlyAllowGov
+    {
+        delegateFundAddress = _delegateFundAddress;
+        emit SetDelegateFundAddress(_delegateFundAddress);
+    }
+    
     function inCaseTokensGetStuck(
         address _token,
         uint256 _amount,
