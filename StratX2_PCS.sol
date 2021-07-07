@@ -12,9 +12,7 @@ contract StratX2_PCS is StratX2 {
     constructor(
         address[] memory _addresses,
         uint256 _pid,
-        bool _isCAKEStaking,
-        bool _isSameAssetDeposit,
-        bool _isCherryComp,
+        bool[] memory _flags,
         address[] memory _earnedToCHERRYPath,
         address[] memory _earnedToToken0Path,
         address[] memory _earnedToToken1Path,
@@ -23,6 +21,7 @@ contract StratX2_PCS is StratX2 {
         uint256 _controllerFee,
         uint256 _buyBackRate,
         uint256 _entranceFeeFactor,
+        uint256 _distributionRatio,
         uint256 _withdrawFeeFactor
     ) public {
         wbnbAddress = _addresses[0];
@@ -37,9 +36,10 @@ contract StratX2_PCS is StratX2 {
 
         farmContractAddress = _addresses[8];
         pid = _pid;
-        isCAKEStaking = _isCAKEStaking;
-        isSameAssetDeposit = _isSameAssetDeposit;
-        isCherryComp = _isCherryComp;
+        isCAKEStaking = _flags[0];
+        isSameAssetDeposit = _flags[1];
+        isCherryComp = _flags[2];
+        isVaultComp = _flags[3];
 
         uniRouterAddress = _addresses[9];
         earnedToCHERRYPath = _earnedToCHERRYPath;
@@ -52,7 +52,10 @@ contract StratX2_PCS is StratX2 {
         rewardsAddress = _addresses[10];
         buyBackRate = _buyBackRate;
         buyBackAddress = _addresses[11];
+        depositFeeFundAddress = _addresses[12];
+        delegateFundAddress = _addresses[13];
         entranceFeeFactor = _entranceFeeFactor;
+        distributionDepositRatio = _distributionRatio;
         withdrawFeeFactor = _withdrawFeeFactor;
 
         transferOwnership(cherryFarmAddress);

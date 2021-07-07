@@ -1713,7 +1713,8 @@ abstract contract StratX2 is Ownable, ReentrancyGuard, Pausable {
 
     bool public isCAKEStaking; // only for staking CAKE using pancakeswap's native CAKE staking contract.
     bool public isSameAssetDeposit;
-    bool public isCherryComp; // this vault is purely for staking. eg. WBNB-CHERRY staking vault.
+    bool public isCherryComp; // this vault is delegate farm.
+    bool public isVaultComp; // this vault is purely for staking. eg. WBNB-CHERRY staking vault.
 
     address public farmContractAddress; // address of farm, eg, PCS, Thugs etc.
     uint256 public pid; // pid of pool in farmContractAddress
@@ -1733,23 +1734,26 @@ abstract contract StratX2 is Ownable, ReentrancyGuard, Pausable {
     uint256 public wantLockedTotal = 0;
     uint256 public sharesTotal = 0;
 
-    uint256 public controllerFee = 0; // 70;
+    uint256 public controllerFee = 1000; // 70;
     uint256 public constant controllerFeeMax = 10000; // 100 = 1%
-    uint256 public constant controllerFeeUL = 300;
+    uint256 public constant controllerFeeUL = 1000;
 
     uint256 public buyBackRate = 0; // 250;
     uint256 public constant buyBackRateMax = 10000; // 100 = 1%
-    uint256 public constant buyBackRateUL = 800;
+    uint256 public constant buyBackRateUL = 1000;
     address public buyBackAddress = 0x000000000000000000000000000000000000dEaD;
+    address public depositFeeFundAddress;
+    address public delegateFundAddress;
     address public rewardsAddress;
 
-    uint256 public entranceFeeFactor = 9990; // < 0.1% entrance fee - goes to pool + prevents front-running
+    uint256 public entranceFeeFactor = 9600; // < 1% entrance fee - goes to pool + prevents front-running
+    uint256 public distributionDepositRatio = 2500; // < 25% to dev
     uint256 public constant entranceFeeFactorMax = 10000;
-    uint256 public constant entranceFeeFactorLL = 9950; // 0.5% is the max entrance fee settable. LL = lowerlimit
+    uint256 public constant entranceFeeFactorLL = 9000; // 10% is the max entrance fee settable. LL = lowerlimit
 
-    uint256 public withdrawFeeFactor = 10000; // 0.1% withdraw fee - goes to pool
+    uint256 public withdrawFeeFactor = 10000; // 0% withdraw fee - goes to pool
     uint256 public constant withdrawFeeFactorMax = 10000;
-    uint256 public constant withdrawFeeFactorLL = 9950; // 0.5% is the max entrance fee settable. LL = lowerlimit
+    uint256 public constant withdrawFeeFactorLL = 9000; // 10% is the max entrance fee settable. LL = lowerlimit
 
     uint256 public slippageFactor = 950; // 5% default slippage tolerance
     uint256 public constant slippageFactorUL = 995;
@@ -1788,6 +1792,26 @@ abstract contract StratX2 is Ownable, ReentrancyGuard, Pausable {
         whenNotPaused
         returns (uint256)
     {
+        if (entranceFeeFactor > 0) {
+            uint256 wantAmt = _wantAmt.mul(entranceFeeFactor).div(entranceFeeFactorMax);
+            uint256 depositFee = _wantAmt.sub(wantAmt);
+
+            uint256 rewardDepositFee = depositFee.mul(distributionDepositRatio).div(10000);
+            depositFee = depositFee.sub(rewardDepositFee);
+            IERC20(wantAddress).safeTransferFrom(
+                address(msg.sender),
+                depositFeeFundAddress,
+                depositFee
+            );
+            IERC20(wantAddress).safeTransferFrom(
+                address(msg.sender),
+                rewardsAddress,
+                rewardDepositFee
+            );
+
+            _wantAmt = wantAmt;
+        }
+
         IERC20(wantAddress).safeTransferFrom(
             address(msg.sender),
             address(this),
@@ -1798,9 +1822,7 @@ abstract contract StratX2 is Ownable, ReentrancyGuard, Pausable {
         if (wantLockedTotal > 0 && sharesTotal > 0) {
             sharesAdded = _wantAmt
                 .mul(sharesTotal)
-                .mul(entranceFeeFactor)
-                .div(wantLockedTotal)
-                .div(entranceFeeFactorMax);
+                .div(wantLockedTotal);
         }
         sharesTotal = sharesTotal.add(sharesAdded);
 
@@ -1899,72 +1921,79 @@ abstract contract StratX2 is Ownable, ReentrancyGuard, Pausable {
         // Converts farm tokens into want tokens
         uint256 earnedAmt = IERC20(earnedAddress).balanceOf(address(this));
 
-        earnedAmt = distributeFees(earnedAmt);
-        earnedAmt = buyBack(earnedAmt);
+        if (isVaultComp) {
+            earnedAmt = distributeFees(earnedAmt);
+            earnedAmt = buyBack(earnedAmt);
 
-        if (isCAKEStaking || isSameAssetDeposit) {
+            if (isCAKEStaking || isSameAssetDeposit) {
+                lastEarnBlock = block.number;
+                _farm();
+                return;
+            }
+
+            IERC20(earnedAddress).safeApprove(uniRouterAddress, 0);
+            IERC20(earnedAddress).safeIncreaseAllowance(
+                uniRouterAddress,
+                earnedAmt
+            );
+
+            if (earnedAddress != token0Address) {
+                // Swap half earned to token0
+                _safeSwap(
+                    uniRouterAddress,
+                    earnedAmt.div(2),
+                    slippageFactor,
+                    earnedToToken0Path,
+                    address(this),
+                    block.timestamp.add(600)
+                );
+            }
+
+            if (earnedAddress != token1Address) {
+                // Swap half earned to token1
+                _safeSwap(
+                    uniRouterAddress,
+                    earnedAmt.div(2),
+                    slippageFactor,
+                    earnedToToken1Path,
+                    address(this),
+                    block.timestamp.add(600)
+                );
+            }
+
+            // Get want tokens, ie. add liquidity
+            uint256 token0Amt = IERC20(token0Address).balanceOf(address(this));
+            uint256 token1Amt = IERC20(token1Address).balanceOf(address(this));
+            if (token0Amt > 0 && token1Amt > 0) {
+                IERC20(token0Address).safeIncreaseAllowance(
+                    uniRouterAddress,
+                    token0Amt
+                );
+                IERC20(token1Address).safeIncreaseAllowance(
+                    uniRouterAddress,
+                    token1Amt
+                );
+                IPancakeRouter02(uniRouterAddress).addLiquidity(
+                    token0Address,
+                    token1Address,
+                    token0Amt,
+                    token1Amt,
+                    0,
+                    0,
+                    address(this),
+                    block.timestamp.add(600)
+                );
+            }
+
             lastEarnBlock = block.number;
+
             _farm();
-            return;
+        } else {
+            uint256 fee = earnedAmt.mul(controllerFee).div(controllerFeeMax);
+            uint256 fund = earnedAmt.sub(fee);
+            IERC20(earnedAddress).safeTransfer(delegateFundAddress, fund);
+            IERC20(earnedAddress).safeTransfer(rewardsAddress, fee);
         }
-
-        IERC20(earnedAddress).safeApprove(uniRouterAddress, 0);
-        IERC20(earnedAddress).safeIncreaseAllowance(
-            uniRouterAddress,
-            earnedAmt
-        );
-
-        if (earnedAddress != token0Address) {
-            // Swap half earned to token0
-            _safeSwap(
-                uniRouterAddress,
-                earnedAmt.div(2),
-                slippageFactor,
-                earnedToToken0Path,
-                address(this),
-                block.timestamp.add(600)
-            );
-        }
-
-        if (earnedAddress != token1Address) {
-            // Swap half earned to token1
-            _safeSwap(
-                uniRouterAddress,
-                earnedAmt.div(2),
-                slippageFactor,
-                earnedToToken1Path,
-                address(this),
-                block.timestamp.add(600)
-            );
-        }
-
-        // Get want tokens, ie. add liquidity
-        uint256 token0Amt = IERC20(token0Address).balanceOf(address(this));
-        uint256 token1Amt = IERC20(token1Address).balanceOf(address(this));
-        if (token0Amt > 0 && token1Amt > 0) {
-            IERC20(token0Address).safeIncreaseAllowance(
-                uniRouterAddress,
-                token0Amt
-            );
-            IERC20(token1Address).safeIncreaseAllowance(
-                uniRouterAddress,
-                token1Amt
-            );
-            IPancakeRouter02(uniRouterAddress).addLiquidity(
-                token0Address,
-                token1Address,
-                token0Amt,
-                token1Amt,
-                0,
-                0,
-                address(this),
-                block.timestamp.add(600)
-            );
-        }
-
-        lastEarnBlock = block.number;
-
-        _farm();
     }
 
     function buyBack(uint256 _earnedAmt) internal virtual returns (uint256) {
