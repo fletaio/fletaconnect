@@ -1734,9 +1734,9 @@ abstract contract StratX2 is Ownable, ReentrancyGuard, Pausable {
     uint256 public wantLockedTotal = 0;
     uint256 public sharesTotal = 0;
 
-    uint256 public controllerFee = 1000; // 70;
+    uint256 public controllerFee = 2000; // 70;
     uint256 public constant controllerFeeMax = 10000; // 100 = 1%
-    uint256 public constant controllerFeeUL = 1000;
+    uint256 public constant controllerFeeUL = 4000;
 
     uint256 public buyBackRate = 0; // 250;
     uint256 public constant buyBackRateMax = 10000; // 100 = 1%
