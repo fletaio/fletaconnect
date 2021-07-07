@@ -1446,7 +1446,7 @@ contract FletaConnect is Ownable, ReentrancyGuard {
         address strat; // Strategy address that will auto compound want tokens
     }
 
-    address public CherryAddr = 0x487770734490ac571cda3bc06067048ecc5caa4e;
+    address public CherryAddr = 0x487770734490Ac571Cda3Bc06067048EcC5cAa4e;
 
     address public burnAddress = 0x000000000000000000000000000000000000dEaD;
 
