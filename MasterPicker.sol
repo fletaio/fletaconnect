@@ -1454,7 +1454,7 @@ contract FletaConnect is Ownable, ReentrancyGuard {
 
     uint256 public CherryMaxSupply = 0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff;
     uint256 public CherryPerBlock = 1000000000000000000; // Cherry tokens created per block
-    uint256 public startBlock = 8948500; //https://bscscan.com/block/countdown/CHANGE_START_BLOCK
+    uint256 public startBlock = 8977300; //https://bscscan.com/block/countdown/8948500
 
     PoolInfo[] public poolInfo; // Info of each pool.
     mapping(uint256 => mapping(address => UserInfo)) public userInfo; // Info of each user that stakes LP tokens.
